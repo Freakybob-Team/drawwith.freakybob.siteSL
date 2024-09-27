@@ -192,6 +192,7 @@ function hexToRgb(hex) {
 
     <script
     src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="FileSaver.js"></script>
     <script type="text/javascript"
     src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script type="text/javascript">  
@@ -207,7 +208,11 @@ function hexToRgb(hex) {
                 dataURL = canvas.toDataURL();  
                 // to print the screenshot in console use below line
                 // console.log(dataURL);
-                navigator.share(dataURL)
+                var canvas = document.getElementById("my-canvas");
+// draw to canvas...
+canvas.toBlob(function(blob) {
+    saveAs(blob, "freakydraw.png");
+});
             });  
         }); 
     </script>
