@@ -204,13 +204,9 @@ function hexToRgb(hex) {
                 // window.location.href = base64image;
             	
             	// screenshot appended to the body as canvas
-                document.body.appendChild(canvas);  
                 dataURL = canvas.toDataURL();  
                 // to print the screenshot in console use below line
                 // console.log(dataURL);
-                
-                // following line is optional and it is to save the screenshot
-                // on the server side. It initiates an ajax call
                 navigator.share(dataURL)
             });  
         }); 
