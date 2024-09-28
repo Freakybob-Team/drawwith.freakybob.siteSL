@@ -103,7 +103,7 @@ img.addEventListener("mousedown", (e) => {
     lastX = img.offsetLeft + img.width / 2;
     lastY = img.offsetTop + img.height / 2;
 });
-
+// below detects mouse movement
 document.addEventListener("mousemove", (e) => {
     if (isDragging) {
         const bodyRect = document.body.getBoundingClientRect();
@@ -123,20 +123,20 @@ document.addEventListener("mousemove", (e) => {
         if (newTop + imgRect.height > bodyRect.height) {
             newTop = bodyRect.height - imgRect.height;
         }
-
+// end mouse movement detection
         img.style.left = newLeft + "px";
         img.style.top = newTop + "px";
 
         ctx.strokeStyle = currentTool === 'marker' ? "rgba(" + hexToRgb(currentColor) + ", 0.5)" : currentColor;
         ctx.lineWidth = currentTool === 'marker' ? 5 : 2;
-
+// pencil code below
         ctx.beginPath();
         ctx.moveTo(lastX, lastY);
         ctx.lineTo(newLeft + img.width / 2, newTop + img.height / 2);
         ctx.stroke();
-
         lastX = newLeft + img.width / 2;
         lastY = newTop + img.height / 2;
+// pencil code ends
     }
 });
 
