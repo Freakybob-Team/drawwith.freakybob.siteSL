@@ -71,10 +71,10 @@ canvas {
 <div class="menu">
     <div class="menu-item" id="pencil">Pencil</div>
     <div class="menu-item" id="marker">Marker</div>
+    <div class="menu-item" id="eraser">Eraser</div>
     <div class="menu-item" id="wipe">Wipe</div>
     <input type="color" id="colorPicker" value="#ffffff" style="margin-left: 15px;">
 </div>
-<button onClick="uploadImage()">Upload to Imgur</button>
 <script>
 const img = document.getElementById("freak");
 const music = document.getElementById("music");
@@ -170,6 +170,10 @@ document.getElementById("pencil").addEventListener("click", () => {
 
 document.getElementById("marker").addEventListener("click", () => {
     currentTool = 'marker';
+});
+
+document.getElementById("eraser").addEventListener("click", () => {
+    currentTool = 'eraser';
 });
 
 colorPicker.addEventListener("input", (e) => {
