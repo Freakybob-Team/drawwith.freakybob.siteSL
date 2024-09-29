@@ -241,12 +241,14 @@ document.getElementById("changeBackground").addEventListener("click", () => {
     const newBackgroundColor = prompt("Enter background color (e.g., #000000):", "#000000");
     if (newBackgroundColor) {
         document.body.style.backgroundColor = newBackgroundColor;
+
+            
+        if (newBackgroundColor.toLowerCase() === "freakybob") {
+            alert("im spongebob");
+        }
     }
 });
-        if (newColor === "freakybob") {
-        alert("are you searching for easter eggs? well i guess you found one")
-    }
-});
+
 
 function hexToRgb(hex) {
     let r = parseInt(hex.slice(1, 3), 16);
