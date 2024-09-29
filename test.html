@@ -62,23 +62,21 @@ canvas {
     z-index: 1;
 }
 .custom-menu {
-    display: none;
     position: absolute;
-    background-color: #1b1b1b;
+    background-color: #333;
     color: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-    z-index: 9999;
+    border-radius: 5px;
     padding: 10px;
+    display: none;
+    z-index: 1000;
 }
 
-.custom-menu .menu-item {
+.custom-menu-item {
     padding: 8px 16px;
     cursor: pointer;
 }
-
-.custom-menu .menu-item:hover {
-    background-color: #333;
+.custom-menu-item:hover {
+    background-color: #444;
 }
 </style>
 </head>
@@ -95,9 +93,10 @@ canvas {
 </div>
 
 <div class="custom-menu" id="customMenu">
-    <div class="menu-item" id="save">Save as...</div>
-    <div class="menu-item" id="halo">Halo</div>
-    <div class="menu-item" id="background">Background</div>
+    <div class="custom-menu-item" id="saveCanvas">Save as...</div>
+    <div class="custom-menu-item" id="unlockCanvas">Unlock</div>
+    <div class="custom-menu-item" id="haloTool">Halo</div>
+    <div class="custom-menu-item" id="changeBackground">Background</div>
 </div>
 
 <script>
@@ -107,20 +106,24 @@ const canvas = document.getElementById("drawingCanvas");
 const ctx = canvas.getContext("2d");
 const colorPicker = document.getElementById("colorPicker");
 const customMenu = document.getElementById("customMenu");
+let isUnlocked = false;
+let currentTool = 'pencil';
+let currentColor = "#ffffff"; 
 
 function resizeCanvas() {
     canvas.width = window.innerWidth * 0.95;
     canvas.height = window.innerHeight * 0.95;
 }
-
 resizeCanvas();
 window.addEventListener('resize', resizeCanvas);
 
 let isDragging = false;
 let offsetX, offsetY;
 let lastX, lastY;
-let currentTool = 'pencil';
-let currentColor = "#ffffff"; 
+
+music.play().catch(error => {
+    console.error('Error playing background music:', error);
+});
 
 img.addEventListener("mousedown", (e) => {
     isDragging = true;
@@ -137,29 +140,41 @@ document.addEventListener("mousemove", (e) => {
         let newLeft = e.clientX - offsetX;
         let newTop = e.clientY - offsetY;
 
-        if (newLeft < 5) {
-            newLeft = 5;
-        }
-        if (newLeft + imgRect.width > bodyRect.width) {
-            newLeft = bodyRect.width - imgRect.width;
-        }
-        if (newTop < 5) {
-            newTop = 5;
-        }
-        if (newTop + imgRect.height > bodyRect.height) {
-            newTop = bodyRect.height - imgRect.height;
+        if (!isUnlocked) {
+            if (newLeft < 5) {
+                newLeft = 5;
+            }
+            if (newLeft + imgRect.width > bodyRect.width) {
+                newLeft = bodyRect.width - imgRect.width;
+            }
+            if (newTop < 5) {
+                newTop = 5;
+            }
+            if (newTop + imgRect.height > bodyRect.height) {
+                newTop = bodyRect.height - imgRect.height;
+            }
         }
 
         img.style.left = newLeft + "px";
         img.style.top = newTop + "px";
 
-        ctx.strokeStyle = currentTool === 'marker' ? "rgba(" + hexToRgb(currentColor) + ", 0.5)" : currentColor;
-        ctx.lineWidth = currentTool === 'marker' ? 5 : 2;
-
-        ctx.beginPath();
-        ctx.moveTo(lastX, lastY);
-        ctx.lineTo(newLeft + img.width / 2, newTop + img.height / 2);
-        ctx.stroke();
+        if (currentTool === 'halo') {
+            ctx.strokeStyle = currentColor;
+            ctx.lineWidth = 2;
+            ctx.shadowColor = currentColor;
+            ctx.shadowBlur = 5; 
+            ctx.beginPath();
+            ctx.arc(newLeft + img.width / 2, newTop + img.height / 2, 20, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.shadowColor = 'transparent'; 
+        } else {
+            ctx.strokeStyle = currentTool === 'marker' ? `rgba(${hexToRgb(currentColor)}, 0.5)` : currentColor;
+            ctx.lineWidth = currentTool === 'marker' ? 5 : 2;
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(newLeft + img.width / 2, newTop + img.height / 2);
+            ctx.stroke();
+        }
 
         lastX = newLeft + img.width / 2;
         lastY = newTop + img.height / 2;
@@ -170,20 +185,15 @@ document.addEventListener("mouseup", () => {
     isDragging = false;
 });
 
-document.addEventListener("dragstart", (e) => e.preventDefault());
+document.addEventListener("contextmenu", (e) => {
+    e.preventDefault();
+    customMenu.style.display = "block";
+    customMenu.style.left = e.pageX + "px";
+    customMenu.style.top = e.pageY + "px";
+});
 
-window.addEventListener('load', () => {
-    colorPicker.value = "#ffffff";
-    currentColor = "#ffffff";
-
-    music.play().catch(error => {
-        console.error('Error playing background music:', error);
-    });
-
-    setTimeout(() => {
-        const header = document.getElementById("h1");
-        header.style.opacity = 0;
-    }, 5000);
+document.addEventListener("click", () => {
+    customMenu.style.display = "none";
 });
 
 document.getElementById("wipe").addEventListener("click", () => {
@@ -198,8 +208,44 @@ document.getElementById("marker").addEventListener("click", () => {
     currentTool = 'marker';
 });
 
+document.getElementById("haloTool").addEventListener("click", () => {
+    currentTool = 'halo';
+});
+
+document.getElementById("unlockCanvas").addEventListener("click", (e) => {
+    isUnlocked = !isUnlocked;
+    e.target.textContent = isUnlocked ? "Lock" : "Unlock";
+});
+
 colorPicker.addEventListener("input", (e) => {
     currentColor = e.target.value;
+});
+
+document.getElementById("saveCanvas").addEventListener("click", () => {
+    const tempCanvas = document.createElement("canvas");
+    const tempCtx = tempCanvas.getContext("2d");
+    tempCanvas.width = canvas.width;
+    tempCanvas.height = canvas.height;
+
+    tempCtx.fillStyle = document.body.style.backgroundColor || 'black';
+    tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+    tempCtx.drawImage(canvas, 0, 0);
+
+    const link = document.createElement("a");
+    link.download = "canvas.png";
+    link.href = tempCanvas.toDataURL();
+    link.click();
+});
+
+document.getElementById("changeBackground").addEventListener("click", () => {
+    const newBackgroundColor = prompt("Enter background color (e.g., #000000):", "#000000");
+    if (newBackgroundColor) {
+        document.body.style.backgroundColor = newBackgroundColor;
+    }
+});
+        if (newColor === "freakybob") {
+        alert("are you searching for easter eggs? well i guess you found one")
+    }
 });
 
 function hexToRgb(hex) {
@@ -208,50 +254,6 @@ function hexToRgb(hex) {
     let b = parseInt(hex.slice(5, 7), 16);
     return `${r}, ${g}, ${b}`;
 }
-
-document.addEventListener("contextmenu", (e) => {
-    e.preventDefault();
-    customMenu.style.display = 'block';
-    customMenu.style.left = `${e.pageX}px`;
-    customMenu.style.top = `${e.pageY}px`;
-});
-
-document.addEventListener("click", () => {
-    customMenu.style.display = 'none';
-});
-
-document.getElementById("save").addEventListener("click", () => {
-    const link = document.createElement('a');
-    link.download = 'freaky_drawing.png';
-    link.href = canvas.toDataURL();
-    link.click();
-});
-
-document.getElementById("halo").addEventListener("click", () => {
-    currentTool = 'halo';
-});
-
-document.getElementById("background").addEventListener("click", () => {
-    const newColor = prompt("Enter a new background color in hex:", "#000000");
-    if (newColor) {
-        document.body.style.backgroundColor = newColor;
-    }
-    if (newColor === "freakybob") {
-        alert("are you searching for easter eggs? well i guess you found one")
-    }
-});
-
-canvas.addEventListener('mousedown', (e) => {
-    if (currentTool === 'halo') {
-        ctx.strokeStyle = currentColor;
-        ctx.lineWidth = 5;
-        ctx.beginPath();
-        ctx.arc(e.clientX, e.clientY, 30, 0, 2 * Math.PI);
-        ctx.shadowColor = currentColor;
-        ctx.shadowBlur = 15;
-        ctx.stroke();
-    }
-});
 </script>
 </body>
 </html>
